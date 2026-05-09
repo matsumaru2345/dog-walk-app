@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>おさんぽ日記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --coral: #D85A30;
+    --coral-light: #FAECE7;
+    --coral-mid: #F5C4B3;
+    --coral-dark: #993C1D;
+    --amber: #FAC775;
+    --amber-dark: #633806;
+    --cream: #FFF8F3;
+    --cream2: #FFF0E6;
+    --text: #2C1A10;
+    --text2: #7A5C4A;
+    --text3: #B89080;
+    --border: rgba(216,90,48,0.15);
+    --border2: rgba(216,90,48,0.25);
+    --white: #fff;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    background: #F5EDE6;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 0 40px;
+  }
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    background: var(--cream);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(180,100,60,0.18);
+    min-height: 700px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--cream2);
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .header-dog { display: flex; align-items: center; gap: 14px; }
+  .dog-avatar-btn {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: var(--coral-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; border: none; cursor: pointer;
+    border: 2.5px solid var(--amber);
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .dog-avatar-btn:active { transform: scale(0.95); }
+  .header-info h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+  .header-info p { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--amber); color: var(--amber-dark);
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 99px; margin-top: 5px;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex; background: var(--white);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    flex: 1; padding: 10px 4px 8px;
+    background: none; border: none; border-bottom: 2.5px solid transparent;
+    font-family: inherit; font-size: 11px; color: var(--text3);
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: color 0.15s;
+  }
+  .nav-btn .icon { font-size: 22px; }
+  .nav-btn.active { color: var(--coral); border-bottom-color: var(--coral); }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* ── HOME ── */
+  .home { padding: 20px; }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px;
+  }
+  .stat-card {
+    background: var(--white); border-radius: var(--radius-md);
+    border: 1px solid var(--border); padding: 14px;
+  }
+  .stat-card .slabel { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .stat-card .sval { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.1; margin-top: 4px; }
+  .stat-card .sunit { font-size: 13px; color: var(--text2); font-weight: 400; }
+
+  .start-btn {
+    width: 100%; padding: 16px; background: var(--coral); color: #fff;
+    border: none; border-radius: var(--radius-lg);
+    font-family: inherit; font-size: 16px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .start-btn:hover { opacity: 0.93; }
+  .start-btn:active { transform: scale(0.98); }
+
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text2); margin: 20px 0 10px; }
+  .walk-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .walk-item:last-child { border-bottom: none; }
+  .walk-icon {
+    width: 38px; height: 38px; background: var(--coral-light);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .walk-date { font-size: 12px; color: var(--text3); }
+  .walk-meta { font-size: 14px; font-weight: 700; color: var(--text); }
+  .walk-tags { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .walk-arrow { margin-left: auto; font-size: 16px; color: var(--text3); }
+
+  /* timer */
+  .timer-view { display: none; text-align: center; padding: 30px 20px 20px; }
+  .timer-view.show { display: block; }
+  .timer-label { font-size: 13px; color: var(--coral); font-weight: 700; margin-bottom: 20px; }
+  .timer-ring {
+    width: 160px; height: 160px; border-radius: 50%;
+    border: 3px solid var(--coral-mid); margin: 0 auto 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--white);
+  }
+  .timer-ring .ttime { font-size: 32px; font-weight: 700; color: var(--text); }
+  .timer-ring .tdist { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .stop-btn {
+    padding: 12px 36px; background: none;
+    border: 2px solid var(--coral); color: var(--coral);
+    border-radius: var(--radius-lg); font-family: inherit;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .stop-btn:hover { background: var(--coral-light); }
+
+  /* ── CALENDAR ── */
+  .calendar { padding: 20px; }
+  .cal-nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-nav-row h2 { font-size: 16px; font-weight: 700; color: var(--text); }
+  .cal-nav-btn { background: none; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; font-size: 16px; color: var(--coral); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { font-size: 11px; color: var(--text3); font-weight: 700; text-align: center; padding: 4px 0; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; border-radius: 50%; color: var(--text); cursor: pointer;
+    position: relative; font-weight: 500;
+    transition: background 0.12s;
+  }
+  .cal-day:hover { background: var(--coral-light); }
+  .cal-day.walked { background: var(--coral-light); color: var(--coral-dark); font-weight: 700; }
+  .cal-day.walked::after { content: '🐾'; font-size: 7px; position: absolute; bottom: 2px; right: 2px; }
+  .cal-day.today { outline: 2px solid var(--coral); outline-offset: 1px; }
+  .cal-day.other { color: var(--text3); font-weight: 400; }
+  .cal-summary {
+    margin-top: 16px; background: var(--white); border-radius: var(--radius-md);
+    border: 1px solid var(--border); padding: 14px;
+    display: flex; gap: 0;
+  }
+  .cal-sum-item { flex: 1; text-align: center; }
+  .cal-sum-item + .cal-sum-item { border-left: 1px solid var(--border); }
+  .cal-sum-item .csv { font-size: 22px; font-weight: 700; color: var(--coral); }
+  .cal-sum-item .csl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── STATS ── */
+  .stats-tab { padding: 20px; }
+  .total-hero {
+    background: var(--coral-light); border-radius: var(--radius-lg);
+    padding: 22px; text-align: center; margin-bottom: 16px;
+    border: 1px solid var(--coral-mid);
+  }
+  .total-hero .big { font-size: 42px; font-weight: 700; color: var(--coral-dark); }
+  .total-hero .sub { font-size: 13px; color: var(--coral); margin-top: 2px; }
+  .total-hero .count { font-size: 12px; color: var(--coral-dark); margin-top: 8px; font-weight: 700; }
+  .bar-section { background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; }
+  .bar-section h3 { font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 12px; }
+  .bar-row { margin-bottom: 10px; }
+  .bar-label-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  .bar-bg { background: var(--coral-light); border-radius: 99px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; background: var(--coral); transition: width 0.5s ease; }
+
+  /* ── DOG LIST ── */
+  .doglist-tab { padding: 20px; }
+  .dog-list-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; border-radius: var(--radius-md);
+    border: 1.5px solid var(--border); margin-bottom: 8px;
+    background: var(--white); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dog-list-item:hover { border-color: var(--coral-mid); }
+  .dog-list-item.selected { border-color: var(--coral); background: var(--coral-light); }
+  .dli-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0; border: 2px solid #fff;
+  }
+  .dli-info { flex: 1; }
+  .dli-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .dli-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .dli-streak { font-size: 11px; color: var(--coral); margin-top: 3px; font-weight: 700; }
+  .dli-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .dog-list-item.selected .dli-check { background: var(--coral); border-color: var(--coral); color: #fff; }
+  .add-dog-btn {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; border-radius: var(--radius-md);
+    border: 1.5px dashed var(--border2); background: none;
+    width: 100%; cursor: pointer; font-family: inherit;
+    margin-top: 4px; transition: border-color 0.15s;
+  }
+  .add-dog-btn:hover { border-color: var(--coral); }
+  .add-circle {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 1.5px dashed var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: var(--text3); flex-shrink: 0;
+  }
+  .add-dog-text { font-size: 14px; color: var(--text3); }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(44,26,16,0.4); z-index: 100;
+    align-items: flex-end; justify-content: center;
+    padding: 0;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--cream); border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    width: 100%; max-width: 390px; max-height: 90vh;
+    overflow-y: auto; padding: 0 0 env(safe-area-inset-bottom, 20px);
+  }
+  .modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 99px; margin: 12px auto 0; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px 16px; }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); padding: 4px; }
+  .modal-body { padding: 0 20px 20px; }
+
+  /* form */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border2); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--white);
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(216,90,48,0.1);
+  }
+  .field textarea { resize: none; min-height: 80px; line-height: 1.6; }
+  .row2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .gender-row { display: flex; gap: 8px; }
+  .gender-btn {
+    flex: 1; padding: 10px; border: 1.5px solid var(--border2);
+    border-radius: var(--radius-sm); font-family: inherit;
+    font-size: 13px; background: none; cursor: pointer; color: var(--text2);
+    transition: all 0.15s;
+  }
+  .gender-btn.selected { background: var(--coral-light); border-color: var(--coral); color: var(--coral-dark); font-weight: 700; }
+  .modal-save {
+    width: 100%; padding: 14px; background: var(--coral); color: #fff;
+    border: none; border-radius: var(--radius-lg); font-family: inherit;
+    font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .modal-save:hover { opacity: 0.92; }
+
+  /* walk detail modal */
+  .detail-hero { background: var(--coral-light); padding: 16px 20px; border-bottom: 1px solid var(--coral-mid); }
+  .detail-date { font-size: 12px; color: var(--coral-dark); font-weight: 700; margin-bottom: 10px; }
+  .detail-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ds-item { text-align: center; }
+  .ds-val { font-size: 22px; font-weight: 700; color: var(--text); }
+  .ds-unit { font-size: 11px; color: var(--text2); }
+  .ds-lbl { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .detail-section { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .detail-section h4 { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 10px; }
+  .mood-row { display: flex; gap: 6px; }
+  .mood-btn {
+    flex: 1; padding: 8px 4px; border: 1.5px solid var(--border2);
+    border-radius: var(--radius-sm); font-family: inherit; font-size: 11px;
+    color: var(--text2); background: none; cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .mood-btn .micon { font-size: 20px; display: block; margin-bottom: 2px; }
+  .mood-btn.selected { border-color: var(--coral); background: var(--coral-light); color: var(--coral-dark); font-weight: 700; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-btn {
+    padding: 5px 12px; border: 1.5px solid var(--border2);
+    border-radius: 99px; font-family: inherit; font-size: 12px;
+    color: var(--text2); background: none; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tag-btn.selected { background: var(--coral-light); border-color: var(--coral); color: var(--coral-dark); font-weight: 700; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: #fff;
+    font-size: 13px; font-family: inherit; font-weight: 700;
+    padding: 10px 22px; border-radius: 99px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    z-index: 200; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* add dog form */
+  .emoji-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .emoji-opt {
+    width: 44px; height: 44px; border-radius: 50%; font-size: 24px;
+    border: 1.5px solid var(--border2); background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.12s;
+  }
+  .emoji-opt.selected { border-color: var(--coral); background: var(--coral-light); }
+  .emoji-opt .bg { border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-dog">
+      <button class="dog-avatar-btn" onclick="openDogList()" id="headerAvatar">🐶</button>
+      <div class="header-info">
+        <h1 id="headerName">ポチとお散歩</h1>
+        <p id="headerBreed">トイプードル · 3歳</p>
+        <div class="header-badge" id="headerStreak">🔥 5日連続</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('home', this)">
+      <span class="icon">🏠</span>ホーム
+    </button>
+    <button class="nav-btn" onclick="switchTab('calendar', this)">
+      <span class="icon">📅</span>カレンダー
+    </button>
+    <button class="nav-btn" onclick="switchTab('stats', this)">
+      <span class="icon">📊</span>記録
+    </button>
+    <button class="nav-btn" onclick="switchTab('doglist', this)">
+      <span class="icon">🐾</span>わんこ
+    </button>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="tab active" id="tab-home">
+      <div class="home" id="home-normal">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="slabel">今日の距離</div>
+            <div class="sval" id="todayDist">1.2 <span class="sunit">km</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="slabel">今日の時間</div>
+            <div class="sval" id="todayTime">18 <span class="sunit">分</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="slabel">今週の回数</div>
+            <div class="sval" id="weekCount">5 <span class="sunit">回</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="slabel">今週の距離</div>
+            <div class="sval" id="weekDist">8.4 <span class="sunit">km</span></div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startWalk()">🐾 散歩を始める</button>
+        <div class="section-title">最近の散歩</div>
+        <div id="recentList"></div>
+      </div>
+
+      <div class="timer-view" id="home-timer">
+        <div class="timer-label">🐾 お散歩中...</div>
+        <div class="timer-ring">
+          <div class="ttime" id="timerTime">00:00</div>
+          <div class="tdist" id="timerDist">0.00 km</div>
+        </div>
+        <button class="stop-btn" onclick="stopWalk()">🏁 終了する</button>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="tab" id="tab-calendar">
+      <div class="calendar">
+        <div class="cal-nav-row">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <h2 id="calTitle"></h2>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-summary">
+          <div class="cal-sum-item">
+            <div class="csv" id="calCount">0</div>
+            <div class="csl">回お散歩</div>
+          </div>
+          <div class="cal-sum-item">
+            <div class="csv" id="calDist">0.0</div>
+            <div class="csl">km 累計</div>
+          </div>
+          <div class="cal-sum-item">
+            <div class="csv" id="calStreak">0</div>
+            <div class="csl">日連続</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="tab" id="tab-stats">
+      <div class="stats-tab">
+        <div class="total-hero">
+          <div class="big" id="totalDist">127.3 km</div>
+          <div class="sub" id="totalDogName">ポチとの累計距離 🐾</div>
+          <div class="count" id="totalCount">合計 89回のお散歩</div>
+        </div>
+        <div class="bar-section">
+          <h3>今週の日別距離</h3>
+          <div id="weekBars"></div>
+        </div>
+        <div class="bar-section">
+          <h3>今月の週別距離</h3>
+          <div id="monthBars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOG LIST -->
+    <div class="tab" id="tab-doglist">
+      <div class="doglist-tab">
+        <div class="section-title" style="margin-top:4px">わんこを選択</div>
+        <div id="dogListItems"></div>
+        <button class="add-dog-btn" onclick="openAddDog()">
+          <div class="add-circle">＋</div>
+          <span class="add-dog-text">わんこを追加する</span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /phone -->
+
+<!-- WALK DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">散歩の記録</span>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="detail-hero">
+      <div class="detail-date" id="detailDate"></div>
+      <div class="detail-stats">
+        <div class="ds-item"><div class="ds-val" id="detailDist"></div><div class="ds-unit">km</div><div class="ds-lbl">距離</div></div>
+        <div class="ds-item"><div class="ds-val" id="detailMin"></div><div class="ds-unit">分</div><div class="ds-lbl">時間</div></div>
+        <div class="ds-item"><div class="ds-val" id="detailSpeed"></div><div class="ds-unit">km/h</div><div class="ds-lbl">速度</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4>ポチの様子</h4>
+      <div class="mood-row">
+        <button class="mood-btn selected" onclick="selectMood(this)"><span class="micon">😄</span>元気いっぱい</button>
+        <button class="mood-btn" onclick="selectMood(this)"><span class="micon">😊</span>ふつう</button>
+        <button class="mood-btn" onclick="selectMood(this)"><span class="micon">😴</span>眠そう</button>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4>できごと</h4>
+      <div class="tag-row">
+        <button class="tag-btn" onclick="toggleTag(this)">お友達に会った</button>
+        <button class="tag-btn" onclick="toggleTag(this)">うんち</button>
+        <button class="tag-btn" onclick="toggleTag(this)">おしっこ</button>
+        <button class="tag-btn" onclick="toggleTag(this)">おやつあげた</button>
+        <button class="tag-btn" onclick="toggleTag(this)">雨</button>
+        <button class="tag-btn" onclick="toggleTag(this)">走った</button>
+        <button class="tag-btn" onclick="toggleTag(this)">新しいルート</button>
+      </div>
+    </div>
+    <div class="detail-section" style="border-bottom:none">
+      <h4>メモ</h4>
+      <div class="field" style="margin:0">
+        <textarea id="detailMemo" placeholder="今日の散歩のメモを残しておこう..."></textarea>
+      </div>
+    </div>
+    <div style="padding:0 20px 20px">
+      <button class="modal-save" onclick="saveWalkDetail()">記録を保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE EDIT MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">プロフィールを編集</span>
+      <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--coral-mid);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 8px;border:2.5px solid var(--amber)" id="editAvatarPreview">🐶</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">アイコンを選択</div>
+        <div class="emoji-picker" id="emojiPicker">
+          <button class="emoji-opt selected" onclick="selectEmoji(this, '🐶')">🐶</button>
+          <button class="emoji-opt" onclick="selectEmoji(this, '🐩')">🐩</button>
+          <button class="emoji-opt" onclick="selectEmoji(this, '🐕')">🐕</button>
+          <button class="emoji-opt" onclick="selectEmoji(this, '🦮')">🦮</button>
+          <button class="emoji-opt" onclick="selectEmoji(this, '🐈')">🐈</button>
+          <button class="emoji-opt" onclick="selectEmoji(this, '🐱')">🐱</button>
+        </div>
+      </div>
+      <div class="field"><label>なまえ</label><input type="text" id="editName" /></div>
+      <div class="field"><label>犬種</label><input type="text" id="editBreed" /></div>
+      <div class="field">
+        <label>性別</label>
+        <div class="gender-row">
+          <button class="gender-btn selected" onclick="selectGender(this)" data-val="オス">オス</button>
+          <button class="gender-btn" onclick="selectGender(this)" data-val="メス">メス</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>誕生日</label><input type="date" id="editBirthday" /></div>
+        <div class="field"><label>体重 (kg)</label><input type="number" id="editWeight" step="0.1" min="0" max="100" /></div>
+      </div>
+      <div class="field"><label>かかりつけ病院</label><input type="text" id="editHospital" /></div>
+      <div class="field"><label>メモ（アレルギーなど）</label><input type="text" id="editNote" placeholder="例：チキンアレルギー" /></div>
+      <button class="modal-save" onclick="saveProfile()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DOG MODAL -->
+<div class="modal-overlay" id="addDogModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">わんこを追加</span>
+      <button class="modal-close" onclick="closeModal('addDogModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--coral-mid);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 8px;border:2.5px solid var(--amber)" id="newAvatarPreview">🐶</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">アイコンを選択</div>
+        <div class="emoji-picker" id="newEmojiPicker">
+          <button class="emoji-opt selected" onclick="selectNewEmoji(this, '🐶')">🐶</button>
+          <button class="emoji-opt" onclick="selectNewEmoji(this, '🐩')">🐩</button>
+          <button class="emoji-opt" onclick="selectNewEmoji(this, '🐕')">🐕</button>
+          <button class="emoji-opt" onclick="selectNewEmoji(this, '🦮')">🦮</button>
+          <button class="emoji-opt" onclick="selectNewEmoji(this, '🐈')">🐈</button>
+          <button class="emoji-opt" onclick="selectNewEmoji(this, '🐱')">🐱</button>
+        </div>
+      </div>
+      <div class="field"><label>なまえ</label><input type="text" id="newName" placeholder="例：ポチ" /></div>
+      <div class="field"><label>犬種</label><input type="text" id="newBreed" placeholder="例：トイプードル" /></div>
+      <div class="field">
+        <label>性別</label>
+        <div class="gender-row" id="newGenderRow">
+          <button class="gender-btn selected" onclick="selectNewGender(this)" data-val="オス">オス</button>
+          <button class="gender-btn" onclick="selectNewGender(this)" data-val="メス">メス</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>誕生日</label><input type="date" id="newBirthday" /></div>
+        <div class="field"><label>体重 (kg)</label><input type="number" id="newWeight" step="0.1" min="0" max="100" placeholder="4.2" /></div>
+      </div>
+      <button class="modal-save" onclick="addNewDog()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+const state = {
+  dogs: [
+    { id:1, emoji:'🐶', name:'ポチ', breed:'トイプードル', gender:'オス', birthday:'2023-03-15', weight:4.2, hospital:'さくら動物病院', note:'', bg:'#F5C4B3' },
+    { id:2, emoji:'🐩', name:'モコ', breed:'ミニチュアシュナウザー', gender:'メス', birthday:'2021-05-20', weight:6.8, hospital:'', note:'', bg:'#9FE1CB' },
+    { id:3, emoji:'🐕', name:'ゆき', breed:'柴犬', gender:'メス', birthday:'2024-01-10', weight:8.5, hospital:'', note:'', bg:'#CECBF6' },
+  ],
+  currentDogId: 1,
+  walks: [
+    { id:1, dogId:1, date:'2026-05-09', time:'07:30', dist:1.2, mins:18, mood:'元気いっぱい', tags:['おやつあげた'], memo:'公園でシバくんに会ってたくさん遊んだ。' },
+    { id:2, dogId:1, date:'2026-05-08', time:'07:15', dist:1.8, mins:24, mood:'ふつう', tags:[], memo:'' },
+    { id:3, dogId:1, date:'2026-05-07', time:'08:00', dist:2.1, mins:31, mood:'元気いっぱい', tags:['走った'], memo:'いつもより長く歩いた。' },
+    { id:4, dogId:1, date:'2026-05-06', time:'07:45', dist:1.5, mins:22, mood:'ふつう', tags:[], memo:'' },
+    { id:5, dogId:1, date:'2026-05-05', time:'07:20', dist:1.8, mins:26, mood:'眠そう', tags:['うんち'], memo:'' },
+    { id:6, dogId:1, date:'2026-05-02', time:'08:10', dist:1.3, mins:19, mood:'ふつう', tags:[], memo:'' },
+    { id:7, dogId:1, date:'2026-05-01', time:'07:30', dist:1.2, mins:18, mood:'元気いっぱい', tags:[], memo:'' },
+    { id:8, dogId:2, date:'2026-05-08', time:'09:00', dist:2.0, mins:30, mood:'元気いっぱい', tags:[], memo:'' },
+    { id:9, dogId:3, date:'2026-05-06', time:'06:45', dist:3.0, mins:40, mood:'元気いっぱい', tags:['走った'], memo:'' },
+  ],
+  calYear: 2026,
+  calMonth: 5,
+  timer: null,
+  timerSec: 0,
+  timerDist: 0,
+  gpsWatch: null,
+  gpsMode: false,
+  lastPos: null,
+  walkingDetail: null,
+  editingWalkId: null,
+  newDogEmoji: '🐶',
+  editDogEmoji: '🐶',
+};
+
+// ── HELPERS ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function currentDog() { return state.dogs.find(d => d.id === state.currentDogId); }
+function dogWalks(dogId) { return state.walks.filter(w => w.dogId === (dogId || state.currentDogId)); }
+function calcAge(birthday) {
+  if (!birthday) return '';
+  const b = new Date(birthday); const n = new Date();
+  let age = n.getFullYear() - b.getFullYear();
+  if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) age--;
+  return age + '歳';
+}
+
+// ── TABS ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'calendar') renderCalendar();
+  if (name === 'stats') renderStats();
+  if (name === 'doglist') renderDogList();
+}
+
+// ── HEADER ──
+function updateHeader() {
+  const dog = currentDog();
+  document.getElementById('headerAvatar').textContent = dog.emoji;
+  document.getElementById('headerName').textContent = dog.name + 'とお散歩';
+  document.getElementById('headerBreed').textContent = dog.breed + ' · ' + calcAge(dog.birthday);
+  const walks = dogWalks();
+  const streak = calcStreak(walks);
+  document.getElementById('headerStreak').textContent = streak > 0 ? '🔥 ' + streak + '日連続' : '今日散歩しよう！';
+}
+
+function calcStreak(walks) {
+  const dates = [...new Set(walks.map(w => w.date))].sort().reverse();
+  let streak = 0; let d = new Date('2026-05-09');
+  for (let i = 0; i < dates.length; i++) {
+    const ds = d.toISOString().slice(0,10);
+    if (dates[i] === ds) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+// ── HOME ──
+function renderHome() {
+  const walks = dogWalks();
+  const today = '2026-05-09';
+  const todayWalks = walks.filter(w => w.date === today);
+  const weekWalks = walks.filter(w => w.date >= '2026-05-04');
+
+  const todayDist = todayWalks.reduce((s,w) => s+w.dist, 0);
+  const todayMins = todayWalks.reduce((s,w) => s+w.mins, 0);
+  document.getElementById('todayDist').innerHTML = todayDist.toFixed(1) + ' <span class="sunit">km</span>';
+  document.getElementById('todayTime').innerHTML = todayMins + ' <span class="sunit">分</span>';
+  document.getElementById('weekCount').innerHTML = weekWalks.length + ' <span class="sunit">回</span>';
+  document.getElementById('weekDist').innerHTML = weekWalks.reduce((s,w)=>s+w.dist,0).toFixed(1) + ' <span class="sunit">km</span>';
+
+  const list = document.getElementById('recentList');
+  const recent = walks.slice().sort((a,b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time)).slice(0,5);
+  list.innerHTML = recent.map(w => {
+    const dateLabel = w.date === today ? '今日' : w.date === '2026-05-08' ? '昨日' : w.date.slice(5).replace('-','/');
+    const tags = w.tags.length ? ' · ' + w.tags.join(' · ') : '';
+    return `<div class="walk-item" onclick="openWalkDetail(${w.id})">
+      <div class="walk-icon">🐾</div>
+      <div style="flex:1">
+        <div class="walk-date">${dateLabel} · ${w.time}</div>
+        <div class="walk-meta">${w.dist.toFixed(1)} km · ${w.mins}分</div>
+        <div class="walk-tags">${w.mood}${tags}</div>
+      </div>
+      <div class="walk-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ── GPS HELPERS ──
+function calcGpsDist(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+    + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
+    * Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── TIMER ──
+function startWalk() {
+  if (!navigator.geolocation) {
+    showToast('GPS非対応のブラウザです');
+    startWalkFallback();
+    return;
+  }
+  showToast('位置情報を取得中...');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      state.lastPos = pos.coords;
+      startWalkWithGps();
+    },
+    err => {
+      showToast('GPS取得失敗 — 手動計測モードで開始します');
+      startWalkFallback();
+    },
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+}
+
+function startWalkWithGps() {
+  document.getElementById('home-normal').style.display = 'none';
+  document.getElementById('home-timer').classList.add('show');
+  state.timerSec = 0; state.timerDist = 0; state.gpsMode = true;
+
+  state.timer = setInterval(() => {
+    state.timerSec++;
+    updateTimerDisplay();
+  }, 1000);
+
+  state.gpsWatch = navigator.geolocation.watchPosition(
+    pos => {
+      if (state.lastPos) {
+        const d = calcGpsDist(
+          state.lastPos.latitude, state.lastPos.longitude,
+          pos.coords.latitude, pos.coords.longitude
+        );
+        if (d > 0.003) {
+          state.timerDist += d;
+          document.getElementById('timerDist').textContent = state.timerDist.toFixed(2) + ' km';
+        }
+      }
+      state.lastPos = pos.coords;
+    },
+    () => {},
+    { enableHighAccuracy: true, distanceFilter: 5 }
+  );
+}
+
+function startWalkFallback() {
+  document.getElementById('home-normal').style.display = 'none';
+  document.getElementById('home-timer').classList.add('show');
+  state.timerSec = 0; state.timerDist = 0; state.gpsMode = false;
+
+  state.timer = setInterval(() => {
+    state.timerSec++;
+    state.timerDist += 0.0028 + Math.random() * 0.001;
+    document.getElementById('timerDist').textContent = state.timerDist.toFixed(2) + ' km ※';
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(state.timerSec/60)).padStart(2,'0');
+  const s = String(state.timerSec%60).padStart(2,'0');
+  document.getElementById('timerTime').textContent = m + ':' + s;
+}
+
+function stopWalk() {
+  clearInterval(state.timer);
+  if (state.gpsWatch != null) {
+    navigator.geolocation.clearWatch(state.gpsWatch);
+    state.gpsWatch = null;
+  }
+  const dist = parseFloat(state.timerDist.toFixed(2));
+  const mins = Math.round(state.timerSec/60) || 1;
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0,10);
+  const timeStr = now.toTimeString().slice(0,5);
+  const newWalk = {
+    id: Date.now(), dogId: state.currentDogId,
+    date: dateStr, time: timeStr,
+    dist, mins, mood: 'ふつう', tags: [], memo: ''
+  };
+  state.walks.unshift(newWalk);
+  state.editingWalkId = newWalk.id;
+  document.getElementById('home-timer').classList.remove('show');
+  document.getElementById('home-normal').style.display = '';
+  renderHome(); updateHeader();
+  openWalkDetail(newWalk.id);
+  showToast('お散歩が記録されました 🐾');
+}
+
+// ── WALK DETAIL ──
+function openWalkDetail(id) {
+  const w = state.walks.find(x => x.id === id);
+  if (!w) return;
+  state.editingWalkId = id;
+  const dateLabel = w.date.replace('-','年').replace('-','月') + '日 · ' + w.time;
+  document.getElementById('detailDate').textContent = dateLabel;
+  document.getElementById('detailDist').textContent = w.dist.toFixed(1);
+  document.getElementById('detailMin').textContent = w.mins;
+  document.getElementById('detailSpeed').textContent = (w.dist / (w.mins/60)).toFixed(1);
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent.includes(w.mood));
+  });
+  document.querySelectorAll('.tag-btn').forEach(b => {
+    b.classList.toggle('selected', w.tags.includes(b.textContent));
+  });
+  document.getElementById('detailMemo').value = w.memo;
+  openModal('detailModal');
+}
+
+function saveWalkDetail() {
+  const w = state.walks.find(x => x.id === state.editingWalkId);
+  if (!w) return;
+  const mood = document.querySelector('.mood-btn.selected')?.textContent.trim() || 'ふつう';
+  const tags = [...document.querySelectorAll('.tag-btn.selected')].map(b => b.textContent);
+  const memo = document.getElementById('detailMemo').value;
+  w.mood = mood; w.tags = tags; w.memo = memo;
+  closeModal('detailModal');
+  renderHome();
+  showToast('記録を保存しました ✓');
+}
+
+function selectMood(btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function toggleTag(btn) { btn.classList.toggle('selected'); }
+
+// ── CALENDAR ──
+function renderCalendar() {
+  const y = state.calYear, m = state.calMonth;
+  document.getElementById('calTitle').textContent = y + '年' + m + '月';
+  const walks = dogWalks();
+  const walkedDates = new Set(walks.map(w => w.date));
+
+  const first = new Date(y, m-1, 1).getDay();
+  const days = new Date(y, m, 0).getDate();
+  const prevDays = new Date(y, m-1, 0).getDate();
+  const dows = ['日','月','火','水','木','金','土'];
+
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < first; i++) {
+    html += `<div class="cal-day other">${prevDays - first + 1 + i}</div>`;
+  }
+  for (let d = 1; d <= days; d++) {
+    const ds = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const isWalked = walkedDates.has(ds);
+    const isToday = ds === '2026-05-09';
+    let cls = 'cal-day';
+    if (isWalked) cls += ' walked';
+    if (isToday) cls += ' today';
+    html += `<div class="${cls}">${d}</div>`;
+  }
+  const remaining = 7 - ((first + days) % 7);
+  if (remaining < 7) for (let i = 1; i <= remaining; i++) html += `<div class="cal-day other">${i}</div>`;
+
+  document.getElementById('calGrid').innerHTML = html;
+
+  const monthWalks = walks.filter(w => w.date.startsWith(y + '-' + String(m).padStart(2,'0')));
+  document.getElementById('calCount').textContent = monthWalks.length;
+  document.getElementById('calDist').textContent = monthWalks.reduce((s,w)=>s+w.dist,0).toFixed(1);
+  document.getElementById('calStreak').textContent = calcStreak(walks);
+}
+
+function changeMonth(dir) {
+  state.calMonth += dir;
+  if (state.calMonth > 12) { state.calMonth = 1; state.calYear++; }
+  if (state.calMonth < 1) { state.calMonth = 12; state.calYear--; }
+  renderCalendar();
+}
+
+// ── STATS ──
+function renderStats() {
+  const dog = currentDog();
+  const walks = dogWalks();
+  document.getElementById('totalDist').textContent = walks.reduce((s,w)=>s+w.dist,0).toFixed(1) + ' km';
+  document.getElementById('totalDogName').textContent = dog.name + 'との累計距離 🐾';
+  document.getElementById('totalCount').textContent = '合計 ' + walks.length + '回のお散歩';
+
+  const weekDays = ['月','火','水','木','金','土','日'];
+  const weekDates = ['2026-05-04','2026-05-05','2026-05-06','2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
+  const weekVals = weekDates.map(d => {
+    const w = walks.filter(x => x.date === d);
+    return parseFloat(w.reduce((s,x)=>s+x.dist,0).toFixed(1));
+  });
+  const maxW = Math.max(...weekVals, 0.1);
+  document.getElementById('weekBars').innerHTML = weekDays.map((d,i) => `
+    <div class="bar-row">
+      <div class="bar-label-row"><span>${d}</span><span>${weekVals[i] > 0 ? weekVals[i] + ' km' : '—'}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(weekVals[i]/maxW*100)}%"></div></div>
+    </div>`).join('');
+
+  const monthWeeks = [
+    { label:'1週目', dates:['2026-05-01','2026-05-02','2026-05-03','2026-05-04','2026-05-05','2026-05-06','2026-05-07'] },
+    { label:'2週目', dates:['2026-05-08','2026-05-09','2026-05-10','2026-05-11','2026-05-12','2026-05-13','2026-05-14'] },
+    { label:'3週目', dates:['2026-05-15','2026-05-16','2026-05-17','2026-05-18','2026-05-19','2026-05-20','2026-05-21'] },
+    { label:'4週目', dates:['2026-05-22','2026-05-23','2026-05-24','2026-05-25','2026-05-26','2026-05-27','2026-05-28'] },
+  ];
+  const monthVals = monthWeeks.map(wk => {
+    const ds = wk.dates.flatMap(d => walks.filter(x=>x.date===d));
+    return parseFloat(ds.reduce((s,x)=>s+x.dist,0).toFixed(1));
+  });
+  const maxM = Math.max(...monthVals, 0.1);
+  document.getElementById('monthBars').innerHTML = monthWeeks.map((wk,i) => `
+    <div class="bar-row">
+      <div class="bar-label-row"><span>${wk.label}</span><span>${monthVals[i] > 0 ? monthVals[i] + ' km' : '—'}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(monthVals[i]/maxM*100)}%"></div></div>
+    </div>`).join('');
+}
+
+// ── DOG LIST ──
+function renderDogList() {
+  const html = state.dogs.map(dog => {
+    const walks = dogWalks(dog.id);
+    const streak = calcStreak(walks);
+    const last = walks.sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const lastLabel = last ? (last.date === '2026-05-09' ? '今日散歩した' : last.date === '2026-05-08' ? '昨日散歩した' : last.date.slice(5).replace('-','/') + 'に散歩した') : 'まだ記録なし';
+    const streakHtml = streak > 1
+      ? `<div class="dli-streak">🔥 ${streak}日連続お散歩中！</div>`
+      : `<div class="dli-streak" style="color:var(--text3)">${lastLabel}</div>`;
+    return `<div class="dog-list-item${dog.id===state.currentDogId?' selected':''}" onclick="selectDog(${dog.id})">
+      <div class="dli-avatar" style="background:${dog.bg}">${dog.emoji}</div>
+      <div class="dli-info">
+        <div class="dli-name">${dog.name}</div>
+        <div class="dli-meta">${dog.breed} · ${dog.gender} · ${calcAge(dog.birthday)}</div>
+        ${streakHtml}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div class="dli-check">${dog.id===state.currentDogId?'✓':''}</div>
+        <button style="background:none;border:none;font-size:13px;color:var(--text3);cursor:pointer;padding:2px 6px;" onclick="event.stopPropagation();openEditProfile(${dog.id})">編集</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('dogListItems').innerHTML = html;
+}
+
+function selectDog(id) {
+  state.currentDogId = id;
+  updateHeader();
+  renderHome();
+  renderDogList();
+  showToast(currentDog().name + 'に切り替えました 🐾');
+}
+
+function openDogList() {
+  switchTab('doglist', document.querySelectorAll('.nav-btn')[3]);
+}
+
+// ── PROFILE EDIT ──
+function openEditProfile(dogId) {
+  const dog = state.dogs.find(d => d.id === dogId);
+  state.currentDogId = dogId;
+  state.editDogEmoji = dog.emoji;
+  document.getElementById('editAvatarPreview').textContent = dog.emoji;
+  document.querySelectorAll('#emojiPicker .emoji-opt').forEach(b => {
+    b.classList.toggle('selected', b.onclick.toString().includes(`'${dog.emoji}'`));
+  });
+  document.getElementById('editName').value = dog.name;
+  document.getElementById('editBreed').value = dog.breed;
+  document.querySelectorAll('#profileModal .gender-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.val === dog.gender);
+  });
+  document.getElementById('editBirthday').value = dog.birthday;
+  document.getElementById('editWeight').value = dog.weight;
+  document.getElementById('editHospital').value = dog.hospital;
+  document.getElementById('editNote').value = dog.note;
+  openModal('profileModal');
+}
+
+function selectGender(btn) {
+  btn.closest('.gender-row').querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function selectNewGender(btn) { selectGender(btn); }
+
+function selectEmoji(btn, emoji) {
+  state.editDogEmoji = emoji;
+  document.getElementById('editAvatarPreview').textContent = emoji;
+  document.querySelectorAll('#emojiPicker .emoji-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function selectNewEmoji(btn, emoji) {
+  state.newDogEmoji = emoji;
+  document.getElementById('newAvatarPreview').textContent = emoji;
+  document.querySelectorAll('#newEmojiPicker .emoji-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function saveProfile() {
+  const dog = state.dogs.find(d => d.id === state.currentDogId);
+  dog.emoji = state.editDogEmoji;
+  dog.name = document.getElementById('editName').value || dog.name;
+  dog.breed = document.getElementById('editBreed').value || dog.breed;
+  dog.gender = document.querySelector('#profileModal .gender-btn.selected')?.dataset.val || dog.gender;
+  dog.birthday = document.getElementById('editBirthday').value || dog.birthday;
+  dog.weight = parseFloat(document.getElementById('editWeight').value) || dog.weight;
+  dog.hospital = document.getElementById('editHospital').value;
+  dog.note = document.getElementById('editNote').value;
+  closeModal('profileModal');
+  updateHeader();
+  renderDogList();
+  showToast('プロフィールを保存しました ✓');
+}
+
+// ── ADD DOG ──
+function openAddDog() {
+  state.newDogEmoji = '🐶';
+  document.getElementById('newAvatarPreview').textContent = '🐶';
+  document.getElementById('newName').value = '';
+  document.getElementById('newBreed').value = '';
+  document.getElementById('newBirthday').value = '';
+  document.getElementById('newWeight').value = '';
+  document.querySelectorAll('#newEmojiPicker .emoji-opt').forEach((b,i) => b.classList.toggle('selected', i===0));
+  document.querySelectorAll('#newGenderRow .gender-btn').forEach((b,i) => b.classList.toggle('selected', i===0));
+  openModal('addDogModal');
+}
+
+function addNewDog() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) { showToast('なまえを入力してください'); return; }
+  const bgs = ['#F5C4B3','#9FE1CB','#CECBF6','#FAC775','#C0DD97','#F4C0D1'];
+  const newDog = {
+    id: Date.now(),
+    emoji: state.newDogEmoji,
+    name,
+    breed: document.getElementById('newBreed').value || '不明',
+    gender: document.querySelector('#newGenderRow .gender-btn.selected')?.dataset.val || 'オス',
+    birthday: document.getElementById('newBirthday').value,
+    weight: parseFloat(document.getElementById('newWeight').value) || 0,
+    hospital: '', note: '',
+    bg: bgs[state.dogs.length % bgs.length]
+  };
+  state.dogs.push(newDog);
+  state.currentDogId = newDog.id;
+  closeModal('addDogModal');
+  updateHeader();
+  renderDogList();
+  renderHome();
+  showToast(name + 'を追加しました 🐾');
+}
+
+// ── INIT ──
+updateHeader();
+renderHome();
+renderCalendar();
+</script>
+</body>
+</html>
