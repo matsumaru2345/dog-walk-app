@@ -451,6 +451,44 @@
 <body>
 
 
+
+<!-- SETUP: 初回わんこ登録 -->
+<div class="login-screen hidden" id="setupScreen" style="justify-content:flex-start;padding-top:60px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div style="font-size:56px;margin-bottom:12px;">🐾</div>
+    <div style="font-size:22px;font-weight:700;color:var(--text);">最初のわんこを登録しよう</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:8px;">あとでいつでも変更できます</div>
+  </div>
+  <div style="width:100%;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="width:70px;height:70px;border-radius:50%;background:var(--coral-mid);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 8px;border:2.5px solid var(--amber)" id="setupAvatarPreview">🐶</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">アイコンを選択</div>
+      <div class="emoji-picker" id="setupEmojiPicker" style="justify-content:center;">
+        <button class="emoji-opt selected" onclick="selectSetupEmoji(this,'🐶')">🐶</button>
+        <button class="emoji-opt" onclick="selectSetupEmoji(this,'🐩')">🐩</button>
+        <button class="emoji-opt" onclick="selectSetupEmoji(this,'🐕')">🐕</button>
+        <button class="emoji-opt" onclick="selectSetupEmoji(this,'🦮')">🦮</button>
+        <button class="emoji-opt" onclick="selectSetupEmoji(this,'🐈')">🐈</button>
+        <button class="emoji-opt" onclick="selectSetupEmoji(this,'🐱')">🐱</button>
+      </div>
+    </div>
+    <div class="field"><label>なまえ</label><input type="text" id="setupName" placeholder="例：ポチ" /></div>
+    <div class="field"><label>犬種</label><input type="text" id="setupBreed" placeholder="例：トイプードル" /></div>
+    <div class="field">
+      <label>性別</label>
+      <div class="gender-row" id="setupGenderRow">
+        <button class="gender-btn selected" onclick="selectGender(this)" data-val="オス">オス</button>
+        <button class="gender-btn" onclick="selectGender(this)" data-val="メス">メス</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>誕生日</label><input type="date" id="setupBirthday" /></div>
+      <div class="field"><label>体重 (kg)</label><input type="number" id="setupWeight" step="0.1" min="0" max="100" placeholder="4.2" /></div>
+    </div>
+    <button class="modal-save" style="margin-top:4px;" onclick="finishSetup()">登録してはじめる 🐾</button>
+  </div>
+</div>
+
 <!-- WALKTHROUGH -->
 <div class="wt-screen" id="walkthrough">
   <div class="wt-dots">
@@ -1226,6 +1264,60 @@ function addNewDog() {
 
 
 
+
+// ── SETUP SCREEN ──
+let _setupEmoji = '🐶';
+
+function selectSetupEmoji(btn, emoji) {
+  _setupEmoji = emoji;
+  document.getElementById('setupAvatarPreview').textContent = emoji;
+  document.querySelectorAll('#setupEmojiPicker .emoji-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function showSetupOrHome(user) {
+  // If dogs already exist (returning user), skip setup
+  const hasDogs = state.dogs.length > 0;
+  if (hasDogs && user) {
+    loadUserData(user);
+    return;
+  }
+  if (hasDogs && !user) {
+    showToast('端末のみモードで開始します 🐾');
+    return;
+  }
+  // First time: clear sample dogs and show setup
+  state.dogs = [];
+  state.currentDogId = null;
+  document.getElementById('setupScreen').classList.remove('hidden');
+}
+
+function finishSetup() {
+  const name = document.getElementById('setupName').value.trim();
+  if (!name) { showToast('なまえを入力してください'); return; }
+  const bgs = ['#F5C4B3','#9FE1CB','#CECBF6','#FAC775','#C0DD97','#F4C0D1'];
+  const newDog = {
+    id: Date.now(),
+    emoji: _setupEmoji,
+    name,
+    breed: document.getElementById('setupBreed').value || '不明',
+    gender: document.querySelector('#setupGenderRow .gender-btn.selected')?.dataset.val || 'オス',
+    birthday: document.getElementById('setupBirthday').value,
+    weight: parseFloat(document.getElementById('setupWeight').value) || 0,
+    hospital: '', note: '',
+    bg: bgs[0]
+  };
+  state.dogs.push(newDog);
+  state.currentDogId = newDog.id;
+  state.walks = [];
+  document.getElementById('setupScreen').classList.add('hidden');
+  updateHeader();
+  renderHome();
+  renderCalendar();
+  showToast(name + 'を登録しました！さあ散歩へ 🐾');
+  if (window._fbUser) loadUserData(window._fbUser);
+}
+
 // ── WALKTHROUGH ──
 const wtSlides = [
   { illust:'🐾', title:'おさんぽ日記へ<br>ようこそ！', desc:'愛犬との毎日のお散歩を<br>かんたんに記録しよう。', btn:'はじめる' },
@@ -1263,7 +1355,7 @@ function loginWithGoogle() {
     .then(result => {
       document.getElementById('loginScreen').classList.add('hidden');
       showToast('ログインしました 🐾');
-      loadUserData(result.user);
+      showSetupOrHome(result.user);
     })
     .catch(err => showToast('ログイン失敗: ' + err.message));
 }
@@ -1287,7 +1379,7 @@ function loginWithEmail() {
     .then(result => {
       document.getElementById('loginScreen').classList.add('hidden');
       showToast('ログインしました 🐾');
-      loadUserData(result.user);
+      showSetupOrHome(result.user);
     })
     .catch(err => {
       if (err.code === 'auth/invalid-credential') showToast('メールかパスワードが間違っています');
@@ -1306,7 +1398,7 @@ function registerWithEmail() {
     .then(result => {
       document.getElementById('loginScreen').classList.add('hidden');
       showToast('登録しました！ようこそ 🐾');
-      saveUserData(result.user);
+      showSetupOrHome(result.user);
     })
     .catch(err => {
       if (err.code === 'auth/email-already-in-use') showToast('このメールアドレスはすでに登録されています');
@@ -1316,7 +1408,7 @@ function registerWithEmail() {
 
 function skipLogin() {
   document.getElementById('loginScreen').classList.add('hidden');
-  showToast('端末のみモードで開始します 🐾');
+  showSetupOrHome(null);
 }
 
 // ── FIRESTORE DATA ──
