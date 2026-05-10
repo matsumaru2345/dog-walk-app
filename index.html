@@ -451,23 +451,27 @@
       document.getElementById('loginScreen')?.classList.add('hidden');
       document.getElementById('walkthrough')?.classList.add('hidden');
       showUserBadge(user);
-      // Check Firestore if user has dogs registered
+      // Load dogs from Firestore
       try {
-        const { collection, getDocs } = window._fb;
         const snap = await getDocs(collection(db, 'users', user.uid, 'dogs'));
         if (snap && !snap.empty) {
-          // Returning user: load data and go to home
-          if (window._onLogin) window._onLogin(user);
+          // 既存ユーザー: データ読み込んでホームへ
+          state.dogs = snap.docs.map(d => d.data());
+          state.currentDogId = state.dogs[0].id;
+          const walkSnap = await getDocs(collection(db, 'users', user.uid, 'walks'));
+          if (walkSnap && !walkSnap.empty) {
+            state.walks = walkSnap.docs.map(d => d.data());
+          }
+          updateHeader();
+          renderHome();
+          renderCalendar();
+          showToast('おかえり！' + state.dogs[0].name + ' 🐾');
         } else {
-          // New user: show setup screen
-          state.dogs = [];
-          state.currentDogId = null;
+          // 新規ユーザー: わんこ登録画面へ
           document.getElementById('setupScreen')?.classList.remove('hidden');
         }
       } catch(e) {
-        // Firestore error: show setup to be safe
-        state.dogs = [];
-        state.currentDogId = null;
+        console.error('Firestore error:', e);
         document.getElementById('setupScreen')?.classList.remove('hidden');
       }
     } else {
@@ -820,23 +824,9 @@
 <script>
 // ── STATE ──
 const state = {
-  dogs: [
-    { id:1, emoji:'🐶', name:'ポチ', breed:'トイプードル', gender:'オス', birthday:'2023-03-15', weight:4.2, hospital:'さくら動物病院', note:'', bg:'#F5C4B3' },
-    { id:2, emoji:'🐩', name:'モコ', breed:'ミニチュアシュナウザー', gender:'メス', birthday:'2021-05-20', weight:6.8, hospital:'', note:'', bg:'#9FE1CB' },
-    { id:3, emoji:'🐕', name:'ゆき', breed:'柴犬', gender:'メス', birthday:'2024-01-10', weight:8.5, hospital:'', note:'', bg:'#CECBF6' },
-  ],
-  currentDogId: 1,
-  walks: [
-    { id:1, dogId:1, date:'2026-05-09', time:'07:30', dist:1.2, mins:18, mood:'元気いっぱい', tags:['おやつあげた'], memo:'公園でシバくんに会ってたくさん遊んだ。' },
-    { id:2, dogId:1, date:'2026-05-08', time:'07:15', dist:1.8, mins:24, mood:'ふつう', tags:[], memo:'' },
-    { id:3, dogId:1, date:'2026-05-07', time:'08:00', dist:2.1, mins:31, mood:'元気いっぱい', tags:['走った'], memo:'いつもより長く歩いた。' },
-    { id:4, dogId:1, date:'2026-05-06', time:'07:45', dist:1.5, mins:22, mood:'ふつう', tags:[], memo:'' },
-    { id:5, dogId:1, date:'2026-05-05', time:'07:20', dist:1.8, mins:26, mood:'眠そう', tags:['うんち'], memo:'' },
-    { id:6, dogId:1, date:'2026-05-02', time:'08:10', dist:1.3, mins:19, mood:'ふつう', tags:[], memo:'' },
-    { id:7, dogId:1, date:'2026-05-01', time:'07:30', dist:1.2, mins:18, mood:'元気いっぱい', tags:[], memo:'' },
-    { id:8, dogId:2, date:'2026-05-08', time:'09:00', dist:2.0, mins:30, mood:'元気いっぱい', tags:[], memo:'' },
-    { id:9, dogId:3, date:'2026-05-06', time:'06:45', dist:3.0, mins:40, mood:'元気いっぱい', tags:['走った'], memo:'' },
-  ],
+  dogs: [],
+  currentDogId: null,
+  walks: [],
   calYear: 2026,
   calMonth: 5,
   timer: null,
