@@ -874,6 +874,13 @@ function switchTab(name, btn) {
 // ── HEADER ──
 function updateHeader() {
   const dog = currentDog();
+  if (!dog) {
+    document.getElementById('headerAvatar').textContent = '🐾';
+    document.getElementById('headerName').textContent = 'おさんぽ日記';
+    document.getElementById('headerBreed').textContent = 'わんこを登録しよう';
+    document.getElementById('headerStreak').textContent = '';
+    return;
+  }
   document.getElementById('headerAvatar').textContent = dog.emoji;
   document.getElementById('headerName').textContent = dog.name + 'とお散歩';
   document.getElementById('headerBreed').textContent = dog.breed + ' · ' + calcAge(dog.birthday);
