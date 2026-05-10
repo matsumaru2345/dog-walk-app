@@ -1373,14 +1373,15 @@ function finishWalkthrough() {
 // ── LOGIN ──
 function loginWithGoogle() {
   if (!window._fb) { showToast('Firebase読み込み中...'); return; }
-  const { auth, GoogleAuthProvider, signInWithRedirect } = window._fb;
+  const { auth, GoogleAuthProvider, signInWithPopup } = window._fb;
   const provider = new GoogleAuthProvider();
-  localStorage.setItem('gRedirect', '1');
-  showToast('Googleログイン画面に移動します...');
-  signInWithRedirect(auth, provider)
+  signInWithPopup(auth, provider)
+    .then(result => {
+      showToast('ログインしました 🐾');
+    })
     .catch(err => {
-      localStorage.removeItem('gRedirect');
-      showToast('ログイン失敗: ' + err.message);
+      console.error('Google login error:', err);
+      showToast('エラー: ' + err.code);
     });
 }
 
