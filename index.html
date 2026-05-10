@@ -1385,9 +1385,13 @@ function loginWithGoogle() {
   if (!window._fb) { showToast('Firebase読み込み中...'); return; }
   const { auth, GoogleAuthProvider, signInWithRedirect } = window._fb;
   const provider = new GoogleAuthProvider();
+  localStorage.setItem('gRedirect', '1');
   showToast('Googleログイン画面に移動します...');
   signInWithRedirect(auth, provider)
-    .catch(err => showToast('ログイン失敗: ' + err.message));
+    .catch(err => {
+      localStorage.removeItem('gRedirect');
+      showToast('ログイン失敗: ' + err.message);
+    });
 }
 
 function showEmailForm() {
@@ -1511,6 +1515,20 @@ const _origStopWalk = window.stopWalk;
 window._onLogin = (user) => loadUserData(user);
 
 // ── INIT ──
+// Googleリダイレクト後はウォークスルーをスキップ
+// Firebase SDKがリダイレクト結果を処理するまで少し待つ
+(async () => {
+  // localStorageでリダイレクト中かどうか確認
+  if (localStorage.getItem('gRedirect') === '1') {
+    // リダイレクトから戻ってきた → ウォークスルーとログイン画面を隠す
+    document.getElementById('walkthrough').classList.add('hidden');
+    document.getElementById('loginScreen').classList.add('hidden');
+    localStorage.removeItem('gRedirect');
+    // onAuthStateChangedが発火するのを待つ（最大5秒）
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+})();
+
 updateHeader();
 renderHome();
 renderCalendar();
