@@ -435,13 +435,31 @@
   window._fb = { auth, db, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, orderBy };
 
   // Watch auth state
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       window._fbUser = user;
       document.getElementById('loginScreen')?.classList.add('hidden');
       document.getElementById('walkthrough')?.classList.add('hidden');
-      if (window._onLogin) window._onLogin(user);
       showUserBadge(user);
+      // Check Firestore if user has dogs registered
+      try {
+        const { collection, getDocs } = window._fb;
+        const snap = await getDocs(collection(db, 'users', user.uid, 'dogs'));
+        if (snap && !snap.empty) {
+          // Returning user: load data and go to home
+          if (window._onLogin) window._onLogin(user);
+        } else {
+          // New user: show setup screen
+          state.dogs = [];
+          state.currentDogId = null;
+          document.getElementById('setupScreen')?.classList.remove('hidden');
+        }
+      } catch(e) {
+        // Firestore error: show setup to be safe
+        state.dogs = [];
+        state.currentDogId = null;
+        document.getElementById('setupScreen')?.classList.remove('hidden');
+      }
     } else {
       window._fbUser = null;
     }
@@ -1292,7 +1310,7 @@ function showSetupOrHome(user) {
   document.getElementById('setupScreen').classList.remove('hidden');
 }
 
-function finishSetup() {
+async function finishSetup() {
   const name = document.getElementById('setupName').value.trim();
   if (!name) { showToast('なまえを入力してください'); return; }
   const bgs = ['#F5C4B3','#9FE1CB','#CECBF6','#FAC775','#C0DD97','#F4C0D1'];
@@ -1310,12 +1328,18 @@ function finishSetup() {
   state.dogs.push(newDog);
   state.currentDogId = newDog.id;
   state.walks = [];
+  // Save dog to Firestore
+  if (window._fbUser && window._fb) {
+    const { db, doc, setDoc } = window._fb;
+    try {
+      await setDoc(doc(db, 'users', window._fbUser.uid, 'dogs', String(newDog.id)), newDog);
+    } catch(e) { console.error('dog save error', e); }
+  }
   document.getElementById('setupScreen').classList.add('hidden');
   updateHeader();
   renderHome();
   renderCalendar();
   showToast(name + 'を登録しました！さあ散歩へ 🐾');
-  if (window._fbUser) loadUserData(window._fbUser);
 }
 
 // ── WALKTHROUGH ──
@@ -1440,18 +1464,21 @@ async function loadUserData(user) {
   saveUserData(user);
   const { db, collection, getDocs } = window._fb;
   try {
-    const snap = await getDocs(collection(db, 'users', user.uid, 'walks'));
-    if (!snap.empty) {
-      const cloudWalks = snap.docs.map(d => d.data());
-      cloudWalks.forEach(w => {
-        if (!state.walks.find(x => String(x.id) === String(w.id))) {
-          state.walks.push(w);
-        }
-      });
-      renderHome();
-      renderCalendar();
-      showToast('クラウドからデータを読み込みました ☁️');
+    // Load dogs
+    const dogSnap = await getDocs(collection(db, 'users', user.uid, 'dogs'));
+    if (!dogSnap.empty) {
+      state.dogs = dogSnap.docs.map(d => d.data());
+      state.currentDogId = state.dogs[0].id;
     }
+    // Load walks
+    const walkSnap = await getDocs(collection(db, 'users', user.uid, 'walks'));
+    if (!walkSnap.empty) {
+      state.walks = walkSnap.docs.map(d => d.data());
+    }
+    updateHeader();
+    renderHome();
+    renderCalendar();
+    showToast('クラウドからデータを読み込みました ☁️');
   } catch(e) { console.error('load error', e); }
 }
 
