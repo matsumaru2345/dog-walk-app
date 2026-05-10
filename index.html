@@ -411,6 +411,42 @@
   .email-form .lfield input:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px rgba(216,90,48,0.1); }
   .login-back { background: none; border: none; font-family: inherit; font-size: 13px; color: var(--text3); cursor: pointer; margin-top: 12px; display: block; width: 100%; text-align: center; }
 </style>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYK_Ai38fdGIxGHmp-KZGK9-zHgcjvxxE",
+    authDomain: "dog-walk-app-cdf68.firebaseapp.com",
+    projectId: "dog-walk-app-cdf68",
+    storageBucket: "dog-walk-app-cdf68.firebasestorage.app",
+    messagingSenderId: "814727734144",
+    appId: "1:814727734144:web:68358df48ad24f5dd71765",
+    measurementId: "G-RWRD7LT1K2"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose to global scope
+  window._fb = { auth, db, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, orderBy };
+
+  // Watch auth state
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window._fbUser = user;
+      document.getElementById('loginScreen')?.classList.add('hidden');
+      document.getElementById('walkthrough')?.classList.add('hidden');
+      if (window._onLogin) window._onLogin(user);
+      showUserBadge(user);
+    } else {
+      window._fbUser = null;
+    }
+  });
+</script>
 </head>
 <body>
 
@@ -1220,8 +1256,18 @@ function finishWalkthrough() {
 
 // ── LOGIN ──
 function loginWithGoogle() {
-  showToast('Googleログインは Firebase設定後に有効になります');
+  if (!window._fb) { showToast('Firebase読み込み中...'); return; }
+  const { auth, GoogleAuthProvider, signInWithPopup } = window._fb;
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+    .then(result => {
+      document.getElementById('loginScreen').classList.add('hidden');
+      showToast('ログインしました 🐾');
+      loadUserData(result.user);
+    })
+    .catch(err => showToast('ログイン失敗: ' + err.message));
 }
+
 function showEmailForm() {
   document.getElementById('loginMain').style.display = 'none';
   document.getElementById('loginEmailForm').style.display = '';
@@ -1230,20 +1276,114 @@ function showLoginMain() {
   document.getElementById('loginMain').style.display = '';
   document.getElementById('loginEmailForm').style.display = 'none';
 }
+
 function loginWithEmail() {
-  const email = document.getElementById('loginEmail').value;
-  if (!email) { showToast('メールアドレスを入力してください'); return; }
-  showToast('メール認証は Firebase設定後に有効になります');
+  if (!window._fb) { showToast('Firebase読み込み中...'); return; }
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { showToast('メールとパスワードを入力してください'); return; }
+  const { auth, signInWithEmailAndPassword } = window._fb;
+  signInWithEmailAndPassword(auth, email, pass)
+    .then(result => {
+      document.getElementById('loginScreen').classList.add('hidden');
+      showToast('ログインしました 🐾');
+      loadUserData(result.user);
+    })
+    .catch(err => {
+      if (err.code === 'auth/invalid-credential') showToast('メールかパスワードが間違っています');
+      else showToast('エラー: ' + err.message);
+    });
 }
+
 function registerWithEmail() {
-  const email = document.getElementById('loginEmail').value;
-  if (!email) { showToast('メールアドレスを入力してください'); return; }
-  showToast('新規登録は Firebase設定後に有効になります');
+  if (!window._fb) { showToast('Firebase読み込み中...'); return; }
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { showToast('メールとパスワードを入力してください'); return; }
+  if (pass.length < 6) { showToast('パスワードは6文字以上にしてください'); return; }
+  const { auth, createUserWithEmailAndPassword } = window._fb;
+  createUserWithEmailAndPassword(auth, email, pass)
+    .then(result => {
+      document.getElementById('loginScreen').classList.add('hidden');
+      showToast('登録しました！ようこそ 🐾');
+      saveUserData(result.user);
+    })
+    .catch(err => {
+      if (err.code === 'auth/email-already-in-use') showToast('このメールアドレスはすでに登録されています');
+      else showToast('エラー: ' + err.message);
+    });
 }
+
 function skipLogin() {
   document.getElementById('loginScreen').classList.add('hidden');
   showToast('端末のみモードで開始します 🐾');
 }
+
+// ── FIRESTORE DATA ──
+async function saveUserData(user) {
+  if (!window._fb || !user) return;
+  const { db, doc, setDoc } = window._fb;
+  try {
+    await setDoc(doc(db, 'users', user.uid), {
+      email: user.email || '',
+      displayName: user.displayName || '',
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch(e) { console.error(e); }
+}
+
+async function saveWalkToCloud(walk) {
+  if (!window._fb || !window._fbUser) return;
+  const { db, doc, setDoc } = window._fb;
+  try {
+    await setDoc(doc(db, 'users', window._fbUser.uid, 'walks', String(walk.id)), {
+      ...walk,
+      savedAt: new Date().toISOString()
+    });
+  } catch(e) { console.error('walk save error', e); }
+}
+
+async function loadUserData(user) {
+  if (!window._fb || !user) return;
+  saveUserData(user);
+  const { db, collection, getDocs } = window._fb;
+  try {
+    const snap = await getDocs(collection(db, 'users', user.uid, 'walks'));
+    if (!snap.empty) {
+      const cloudWalks = snap.docs.map(d => d.data());
+      cloudWalks.forEach(w => {
+        if (!state.walks.find(x => String(x.id) === String(w.id))) {
+          state.walks.push(w);
+        }
+      });
+      renderHome();
+      renderCalendar();
+      showToast('クラウドからデータを読み込みました ☁️');
+    }
+  } catch(e) { console.error('load error', e); }
+}
+
+function showUserBadge(user) {
+  const name = user.displayName || user.email || 'ユーザー';
+  const existing = document.getElementById('userBadge');
+  if (existing) existing.remove();
+  const badge = document.createElement('button');
+  badge.id = 'userBadge';
+  badge.style.cssText = 'position:fixed;top:12px;right:12px;z-index:300;background:var(--coral-light);border:1px solid var(--coral-mid);border-radius:99px;padding:4px 12px 4px 8px;font-family:inherit;font-size:12px;color:var(--coral-dark);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;';
+  badge.innerHTML = '👤 ' + name.split('@')[0] + ' <span style="font-size:10px;color:var(--text3)">ログアウト</span>';
+  badge.onclick = () => {
+    if (!window._fb) return;
+    window._fb.signOut(window._fb.auth).then(() => {
+      badge.remove();
+      showToast('ログアウトしました');
+    });
+  };
+  document.body.appendChild(badge);
+}
+
+// Auto-save walks to cloud when created
+const _origStopWalk = window.stopWalk;
+window._onLogin = (user) => loadUserData(user);
 
 // ── INIT ──
 updateHeader();
